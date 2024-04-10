@@ -1,12 +1,14 @@
 # from django.http import JsonResponse
+from django.contrib.auth import authenticate
 from rest_framework import permissions
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Drink, Snack
-from .serializers import DrinkSerializer, SnackSerializer
+from .serializers import DrinkSerializer, SnackSerializer, LoginSerializer, RegisterSerializer
 
 
 class DrinkViewSet(APIView):
@@ -206,16 +208,34 @@ class SnackDetailApiView(APIView):
             status=status.HTTP_200_OK
         )
 
-# def drink_list(request):
-#     #get all drinks
-#     drinks = Drink.objects.all()
-#     #serialize data
-#     serializer = DrinkSerializer(drinks, many=True)
-#     return JsonResponse({'all_drinks':serializer.data}, safe=False)
-#
-# def snack_list(request):
-#     #get all drinks
-#     snacks = Snack.objects.all()
-#     #serialize data
-#     serializer = SnackSerializer(snacks, many=True)
-#     return JsonResponse({'all_snacks': serializer.data}, safe=False)
+
+class LoginAPI(APIView):
+
+    def post(self, request):
+        request_data = request.data
+        serializer = LoginSerializer(data=request_data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(username=request_data['username'], password=request_data['password'])
+        #print(user)
+
+        if not user:
+            return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token = Token.objects.get(user=user)
+        return Response({'message': 'login successful', 'token': str(token)}, status=status.HTTP_200_OK)
+
+
+class RegisterUser(APIView):
+
+    def post(self, request):
+        request_data = request.data
+        serializer = RegisterSerializer(data=request_data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        return Response({'message': f'user created'}, status=status.HTTP_201_CREATED)
+
