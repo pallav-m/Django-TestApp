@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from snacks.views import DrinkViewSet, SnackViewSet, DrinkDetailApiView, SnackDetailApiView, LoginAPI, RegisterUser
+from snacks.views import DrinkViewSet, SnackViewSet, DrinkDetailApiView, SnackDetailApiView, LoginAPI, RegisterUser, DeleteUserAPI
 
 
 urlpatterns = [
@@ -27,4 +27,5 @@ urlpatterns = [
     path('snack/<int:snack_id>/', SnackDetailApiView.as_view()),
     path('login/', LoginAPI.as_view()),
     path('register/', RegisterUser.as_view()),
+    path('delete-user/', DeleteUserAPI.as_view()),
 ]

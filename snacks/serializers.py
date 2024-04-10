@@ -1,3 +1,4 @@
+from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework.authtoken.admin import User
 
@@ -21,29 +22,36 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
 
-class RegisterSerializer(serializers.Serializer):
+class UserSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
 
-    def validate(self, data):
-        if User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError('username already exists')
-
-        return data
+    # def validate(self, data):
+    #     try:
+    #         user = authenticate(username=data['username'], password=data['password'])
+    #         if not user:
+    #             raise serializers.ValidationError("Username or password is incorrect")
+    #
+    #     return data
 
     def create(self, validated_data):
+
+        if User.objects.filter(username=validated_data['username']).exists():
+            raise serializers.ValidationError('username already exists')
+
         user = User.objects.create(username=validated_data['username'])
         #print(dir(user))
         user.set_password(validated_data['password'])
         user.save()
         return validated_data
 
-
-class DeleteUserSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
-
-    def delete(self, request_data):
-        user = User.objects.get(username=request_data['username'])
+    def delete(self, validated_data):
+        u = authenticate(username=validated_data['username'], password=validated_data['password'])
+        if not u:
+            raise serializers.ValidationError('Invalid credentials')
+        user = User.objects.get(username=validated_data['username'])
         user.delete()
-        return request_data
+        return validated_data
+
+
+
