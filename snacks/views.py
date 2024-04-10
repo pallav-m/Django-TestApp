@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Drink, Snack
-from .serializers import DrinkSerializer, SnackSerializer, LoginSerializer, RegisterSerializer
+from .serializers import DrinkSerializer, SnackSerializer, LoginSerializer, RegisterSerializer, DeleteUserSerializer
 
 
 class DrinkViewSet(APIView):
@@ -224,7 +224,7 @@ class LoginAPI(APIView):
         if not user:
             return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        token = Token.objects.get(user=user)
+        token, created = Token.objects.get_or_create(user=user)
         return Response({'message': 'login successful', 'token': str(token)}, status=status.HTTP_200_OK)
 
 
@@ -238,4 +238,17 @@ class RegisterUser(APIView):
 
         serializer.save()
         return Response({'message': f'user created'}, status=status.HTTP_201_CREATED)
+
+
+class DeleteUserAPI(APIView):
+
+    def delete(self, request):
+        request_data = request.data
+        serializer = DeleteUserSerializer(data=request_data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(username=request_data['username'], password=request_data['password'])
+        if not user:
+            return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 

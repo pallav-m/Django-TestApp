@@ -38,3 +38,12 @@ class RegisterSerializer(serializers.Serializer):
         user.save()
         return validated_data
 
+
+class DeleteUserSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def delete(self, request_data):
+        user = User.objects.get(username=request_data['username'])
+        user.delete()
+        return request_data
